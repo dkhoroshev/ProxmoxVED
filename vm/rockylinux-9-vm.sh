@@ -248,7 +248,7 @@ function default_settings() {
   echo -e "${VLANTAG}${BOLD}${DGN}VLAN: ${BGN}Default${CL}"
   echo -e "${DEFAULT}${BOLD}${DGN}Interface MTU Size: ${BGN}Default${CL}"
   echo -e "${GATEWAY}${BOLD}${DGN}Start VM when completed: ${BGN}${START_VM}${CL}"
-  echo -e "${CLOUD}${BOLD}${DGN}Configure Cloud-init: ${BGN}no${CL}"
+  echo -e "${CLOUD}${BOLD}${DGN}Configure Cloud-init: ${BGN}${CLOUD_INIT}${CL}"
   echo -e "${CREATING}${BOLD}${DGN}Creating a Rocky Linux 9 VM using the above default settings${CL}"
 }
 
