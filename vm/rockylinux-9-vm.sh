@@ -220,7 +220,7 @@ function exit-script() {
 function default_settings() {
   VMID=$(get_valid_nextid)
   FORMAT=""
-  MACHINE="q35"
+  MACHINE="-machine q35"
   DISK_SIZE="10G"
   DISK_CACHE=""
   HN="rockylinux"
@@ -615,15 +615,15 @@ qm importdisk "$VMID" "${WORK_FILE}" "$STORAGE" ${DISK_IMPORT:-} 1>&/dev/null
 msg_info "Attaching EFI and root disk"
 if [ "$CLOUD_INIT" == "yes" ]; then
   qm set "$VMID" \
-    --efidisk0 "${DISK0_REF}"${FORMAT} \
-    --scsi0 "${DISK1_REF}",${DISK_CACHE}${THIN}size="${DISK_SIZE}" \
+    --efidisk0 "${DISK0_REF},efitype=4m" \
+    --scsi0 "${DISK1_REF}",${DISK_CACHE}ssd=1,discard=on,size="${DISK_SIZE}" \
     --scsi1 "${STORAGE}:cloudinit" \
     --boot order=scsi0 \
     --serial0 socket >/dev/null
 else
   qm set "$VMID" \
-    --efidisk0 "${DISK0_REF}"${FORMAT} \
-    --scsi0 "${DISK1_REF}",${DISK_CACHE}${THIN}size="${DISK_SIZE}" \
+    --efidisk0 "${DISK0_REF},efitype=4m" \
+    --scsi0 "${DISK1_REF}",${DISK_CACHE}ssd=1,discard=on,size="${DISK_SIZE}" \
     --boot order=scsi0 \
     --serial0 socket >/dev/null
 fi
