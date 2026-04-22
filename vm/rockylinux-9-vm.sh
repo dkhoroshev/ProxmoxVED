@@ -273,14 +273,14 @@ function advanced_settings() {
     "q35" "Machine q35" ON \
     "i440fx" "Machine i440fx" OFF \
     3>&1 1>&2 2>&3); then
-    if [ "$MACH" = i440fx ]; then
+    if [ "$MACH" = "q35" ]; then
+      echo -e "${CONTAINERTYPE}${BOLD}${DGN}Machine Type: ${BGN}$MACH${CL}"
+      FORMAT=",efitype=4m"
+      MACHINE=" -machine q35"
+    else
       echo -e "${CONTAINERTYPE}${BOLD}${DGN}Machine Type: ${BGN}$MACH${CL}"
       FORMAT=",efitype=4m"
       MACHINE=""
-    else
-      echo -e "${CONTAINERTYPE}${BOLD}${DGN}Machine Type: ${BGN}$MACH${CL}"
-      FORMAT=""
-      MACHINE=" -machine q35"
     fi
   else
     exit-script
@@ -599,7 +599,7 @@ if [[ "$STORAGE_TYPE" != "nfs" && "$STORAGE_TYPE" != "dir" ]]; then
 fi
 
 msg_info "Creating a Rocky Linux 9 VM"
-qm create "$VMID" -agent 1 -machine ${MACHINE} -tablet 0 -localtime 1 -bios ovmf ${CPU_TYPE} -cores "$CORE_COUNT" -memory "$RAM_SIZE" \
+qm create "$VMID" -agent 1${MACHINE} -tablet 0 -localtime 1 -bios ovmf${CPU_TYPE} -cores "$CORE_COUNT" -memory "$RAM_SIZE" \
   -name "$HN" -net0 virtio,bridge="$BRG",macaddr="$MAC""$VLAN""$MTU" -onboot 1 -ostype l26 -scsihw virtio-scsi-pci
 pvesm alloc "$STORAGE" "$VMID" "$DISK0" 4M 1>&/dev/null
 pvesm alloc "$STORAGE" "$VMID" "$DISK2" 4M 1>&/dev/null
@@ -615,15 +615,15 @@ qm importdisk "$VMID" "${WORK_FILE}" "$STORAGE" ${DISK_IMPORT:-} 1>&/dev/null
 msg_info "Attaching EFI and root disk"
 if [ "$CLOUD_INIT" == "yes" ]; then
   qm set "$VMID" \
-    --efidisk0 "${STORAGE}:0,efitype=4m" \
-    --scsi0 "${DISK_REF},ssd=1,discard=on" \
+    --efidisk0 "${DISK0_REF}"${FORMAT} \
+    --scsi0 "${DISK1_REF}",${DISK_CACHE}${THIN}size="${DISK_SIZE}" \
     --scsi1 "${STORAGE}:cloudinit" \
     --boot order=scsi0 \
     --serial0 socket >/dev/null
 else
   qm set "$VMID" \
-    --efidisk0 "${STORAGE}:0,efitype=4m" \
-    --scsi0 "${DISK_REF},ssd=1,discard=on" \
+    --efidisk0 "${DISK0_REF}"${FORMAT} \
+    --scsi0 "${DISK1_REF}",${DISK_CACHE}${THIN}size="${DISK_SIZE}" \
     --boot order=scsi0 \
     --serial0 socket >/dev/null
 fi
