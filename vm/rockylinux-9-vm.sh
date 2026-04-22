@@ -220,11 +220,11 @@ function exit-script() {
 function default_settings() {
   VMID=$(get_valid_nextid)
   FORMAT=""
-  MACHINE=" -machine q35"
+  MACHINE="q35"
   DISK_SIZE="10G"
   DISK_CACHE=""
   HN="rockylinux"
-  CPU_TYPE=" -cpu x86-64-v3"
+  CPU_TYPE=""
   CORE_COUNT="2"
   RAM_SIZE="2048"
   BRG="vmbr0"
