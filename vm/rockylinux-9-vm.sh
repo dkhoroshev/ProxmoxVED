@@ -653,7 +653,7 @@ fi
 
 msg_info "Installing resize tools in VM"
 qm set "$VMID" --sshkeys ~/.ssh/admin_rsa.pub >/dev/null 2>&1 || true
-qm exec "$VMID" -- bash -c "apt-get update && apt-get install -y cloud-guest-utils e2fsprogs xfsprogs"
+qm exec "$VMID" -- bash -c "dnf update -y && dnf install -y cloud-utils-growpart e2fsprogs xfsprogs"
 msg_ok "Installed resize tools in VM"
 
 msg_info "Injecting auto-resize script into VM"
