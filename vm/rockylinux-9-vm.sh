@@ -6,7 +6,6 @@
 
 COMMUNITY_SCRIPTS_URL="${COMMUNITY_SCRIPTS_URL:-https://git.community-scripts.org/community-scripts/ProxmoxVED/raw/branch/main}"
 source /dev/stdin <<<$(curl -fsSL "$COMMUNITY_SCRIPTS_URL/misc/api.func")
-source /dev/stdin <<<$(curl -fsSL "$COMMUNITY_SCRIPTS_URL/misc/cloud-init.func")
 
 function header_info() {
   clear
@@ -597,13 +596,31 @@ qm create "$VMID" -agent 1${MACHINE} -tablet 0 -localtime 1 -bios ovmf${CPU_TYPE
 pvesm alloc "$STORAGE" "$VMID" "$DISK0" 4M 1>&/dev/null
 pvesm alloc "$STORAGE" "$VMID" "$DISK2" 4M 1>&/dev/null
 qm importdisk "$VMID" "${WORK_FILE}" "$STORAGE" ${DISK_IMPORT:-} 1>&/dev/null
-qm set "$VMID" \
-  -efidisk0 "${DISK0_REF}"${FORMAT} \
-  -scsi0 "${DISK1_REF}",${DISK_CACHE}${THIN}size="${DISK_SIZE}" \
-  -scsi1 "${STORAGE}":cloudinit \
-  -tpmstate0 "${DISK2_REF}",version=v2.0 \
-  -boot order=scsi0 \
-  -serial0 socket >/dev/null
+# qm set "$VMID" \
+#   -efidisk0 "${DISK0_REF}"${FORMAT} \
+#   -scsi0 "${DISK1_REF}",${DISK_CACHE}${THIN}size="${DISK_SIZE}" \
+#   -scsi1 "${STORAGE}":cloudinit \
+#   -tpmstate0 "${DISK2_REF}",version=v2.0 \
+#   -boot order=scsi0 \
+#   -serial0 socket >/dev/null
+
+msg_info "Attaching EFI and root disk"
+if [ "$CLOUD_INIT" == "yes" ]; then
+  qm set "$VMID" \
+    --efidisk0 "${STORAGE}:0,efitype=4m" \
+    --scsi0 "${DISK_REF},ssd=1,discard=on" \
+    --scsi1 "${STORAGE}:cloudinit" \
+    --boot order=scsi0 \
+    --serial0 socket >/dev/null
+else
+  qm set "$VMID" \
+    --efidisk0 "${STORAGE}:0,efitype=4m" \
+    --scsi0 "${DISK_REF},ssd=1,discard=on" \
+    --boot order=scsi0 \
+    --serial0 socket >/dev/null
+fi
+qm set "$VMID" --agent enabled=1 >/dev/null
+msg_ok "Attached EFI and root disk"
 
 # Clean up work file
 rm -f "$WORK_FILE"
@@ -642,7 +659,10 @@ qm set "$VMID" -description "$DESCRIPTION" >/dev/null
 msg_info "Resizing disk to ${DISK_SIZE}"
 qm resize "$VMID" scsi0 "${DISK_SIZE}" >/dev/null
 
-setup_cloud_init "$VMID" "$STORAGE" "$HN" "yes"
+if [ "$CLOUD_INIT" == "yes" ]; then
+  source /dev/stdin <<<$(curl -fsSL "$COMMUNITY_SCRIPTS_URL/misc/cloud-init.func")
+  setup_cloud_init "$VMID" "$STORAGE" "$HN" "yes"
+fi
 
 msg_ok "Created a Rocky Linux 9 VM ${CL}${BL}(${HN})"
 if [ "$START_VM" == "yes" ]; then
