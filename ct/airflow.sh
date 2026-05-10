@@ -48,7 +48,7 @@ function update_script() {
   msg_info "Updating Apache Airflow to ${LATEST}"
   $STD uv pip install --python /opt/airflow/.venv/bin/python \
     "apache-airflow[postgres,fab]==${LATEST}" \
-    --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-${LATEST}/constraints-3.14.txt"
+    --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-${LATEST}/constraints-3.12.txt"
   echo "${LATEST}" >~/.airflow
   msg_ok "Updated Apache Airflow to ${LATEST}"
 

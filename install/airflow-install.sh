@@ -22,7 +22,7 @@ $STD apt install -y \
   python3-dev
 msg_ok "Installed Dependencies"
 
-UV_PYTHON="3.14" setup_uv
+UV_PYTHON="3.12" setup_uv
 PG_VERSION="16" setup_postgresql
 PG_DB_NAME="airflow" PG_DB_USER="airflow" setup_postgresql_db
 
@@ -30,10 +30,10 @@ msg_info "Installing Apache Airflow"
 AIRFLOW_VERSION="3.2.1"
 mkdir -p /opt/airflow/{dags,logs,plugins}
 cd /opt/airflow
-$STD uv venv --python 3.14
+$STD uv venv --python 3.12
 $STD uv pip install --python /opt/airflow/.venv/bin/python \
   "apache-airflow[postgres,fab]==${AIRFLOW_VERSION}" \
-  --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-3.14.txt"
+  --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-3.12.txt"
 echo "${AIRFLOW_VERSION}" >~/.airflow
 msg_ok "Installed Apache Airflow"
 
