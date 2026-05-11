@@ -19,8 +19,8 @@
       "script": "ct/flame.sh",
       "config_path": "/opt/flame/.env",
       "resources": {
-        "cpu": 1,
-        "ram": 512,
+        "cpu": 2,
+        "ram": 2048,
         "hdd": 4,
         "os": "Debian",
         "version": "13"
