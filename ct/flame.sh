@@ -50,14 +50,12 @@ function update_script() {
     msg_info "Rebuilding Application"
     cd /opt/flame
     mkdir -p data public
-    touch public/flame.css public/customQueries.json
-    $STD npm install
+    $STD npm install --production
     cd /opt/flame/client
-    $STD npm install
+    $STD npm install --production
     $STD npm run build
     cd /opt/flame
     cp -r client/build/. public/
-    $STD npm rebuild sqlite3
     msg_ok "Rebuilt Application"
 
     msg_info "Starting Service"
