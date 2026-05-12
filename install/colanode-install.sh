@@ -28,7 +28,8 @@ fetch_and_deploy_gh_release "colanode" "colanode/colanode" "tarball"
 
 msg_info "Building Application"
 cd /opt/colanode
-$STD npm ci
+export NODE_OPTIONS="--max-old-space-size=4096"
+$STD npm install
 $STD npm run build -w @colanode/core
 $STD npm run build -w @colanode/crdt
 $STD npm run build -w @colanode/server
@@ -36,6 +37,7 @@ $STD npm run build -w @colanode/client
 $STD npm run build -w @colanode/ui
 $STD npm run build -w @colanode/web
 $STD npm prune --production
+unset NODE_OPTIONS
 msg_ok "Built Application"
 
 msg_info "Configuring Application"

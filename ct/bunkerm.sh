@@ -43,8 +43,10 @@ function update_script() {
 
     msg_info "Rebuilding Frontend"
     cd /opt/bunkerm/frontend
-    $STD npm ci
+    export NODE_OPTIONS="--max-old-space-size=4096"
+    $STD npm install
     $STD npm run build
+    unset NODE_OPTIONS
     mkdir -p /nextjs
     cp -r /opt/bunkerm/frontend/.next/standalone/. /nextjs/
     cp -r /opt/bunkerm/frontend/.next/static /nextjs/.next/static

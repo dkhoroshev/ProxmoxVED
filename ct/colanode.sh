@@ -42,7 +42,8 @@ function update_script() {
 
     msg_info "Rebuilding Application"
     cd /opt/colanode
-    $STD npm ci
+    export NODE_OPTIONS="--max-old-space-size=4096"
+    $STD npm install
     $STD npm run build -w @colanode/core
     $STD npm run build -w @colanode/crdt
     $STD npm run build -w @colanode/server
@@ -50,6 +51,8 @@ function update_script() {
     $STD npm run build -w @colanode/ui
     $STD npm run build -w @colanode/web
     cp -r /opt/colanode/apps/web/dist/. /var/www/colanode/
+    $STD npm prune --production
+    unset NODE_OPTIONS
     msg_ok "Rebuilt Application"
 
     msg_info "Restoring Data"
