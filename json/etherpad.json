@@ -33,7 +33,7 @@
   },
   "notes": [
     {
-      "text": "Admin account is set by editing /opt/etherpad/settings.json and restarting the service.",
+      "text": "To see admin credentials, run: `cat ~/etherpad.creds` inside LXC.",
       "type": "info"
     }
   ]

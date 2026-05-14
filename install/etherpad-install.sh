@@ -17,7 +17,16 @@ NODE_VERSION=25 setup_nodejs
 fetch_and_deploy_gh_release "etherpad" "ether/etherpad" "binary"
 
 msg_info "Configuring Etherpad"
+ADMIN_PASS=$(openssl rand -base64 12)
 sed -i 's|"soffice": null|"soffice": "/usr/bin/libreoffice"|' /opt/etherpad/settings.json
+sed -i -e '/^  \/\*$/d' -e '/^\s*\*\/$/d' /opt/etherpad/settings.json
+sed -i "546,551s|\"password\": \"changeme1\"|\"password\": \"$ADMIN_PASS\"|" /opt/etherpad/settings.json
+{
+  echo "Etherpad Credentials"
+  echo "=================="
+  echo "User: admin"
+  echo "Password: ${ADMIN_PASS}"
+} >~/etherpad.creds
 msg_ok "Configured Etherpad"
 
 systemctl start etherpad
