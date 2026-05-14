@@ -18,9 +18,9 @@ fetch_and_deploy_gh_release "etherpad" "ether/etherpad" "binary"
 
 msg_info "Configuring Etherpad"
 ADMIN_PASS=$(openssl rand -base64 18 | tr -dc 'a-zA-Z0-9' | head -c13)
+sed -i '653d;638d' /opt/etherpad/settings.json
 sed -i 's|"soffice": null|"soffice": "/usr/bin/libreoffice"|' /opt/etherpad/settings.json
-sed -i "697s/\"password\": \"changeme1\"/\"password\": \"$ADMIN_PASS\"/" /opt/etherpad/settings.json
-sed -i "703s/\"password\": \"changeme1\"/\"password\": \"$ADMIN_PASS\"/" /opt/etherpad/settings.json
+sed -i "642s/\"password\": \"changeme1\"/\"password\": \"$ADMIN_PASS\"/" /opt/etherpad/settings.json
 {
   echo "Etherpad Credentials"
   echo "=================="
