@@ -6,7 +6,8 @@
 
 COMMUNITY_SCRIPTS_URL="${COMMUNITY_SCRIPTS_URL:-https://raw.githubusercontent.com/dkhoroshev/ProxmoxVED/main}"
 source /dev/stdin <<<$(curl -fsSL "$COMMUNITY_SCRIPTS_URL/misc/api.func")
-
+#URL=https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
+URL=http://nas.home.local/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
 function header_info {
   clear
   cat <<"EOF"
@@ -483,7 +484,7 @@ msg_ok "Using ${CL}${BL}$STORAGE${CL} ${GN}for Storage Location."
 msg_ok "Virtual Machine ID is ${CL}${BL}$VMID${CL}."
 
 msg_info "Retrieving the URL for the Rocky Linux 9 Qcow2 Disk Image"
-URL=https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
+
 CACHE_DIR="/var/lib/vz/template/cache"
 CACHE_FILE="$CACHE_DIR/$(basename "$URL")"
 FILE_IMG="/var/lib/vz/template/tmp/${CACHE_FILE##*/%.xz}"
