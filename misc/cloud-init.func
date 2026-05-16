@@ -47,7 +47,7 @@ CLOUDINIT_SSH_KEYS="${CLOUDINIT_SSH_KEYS:-}" # Empty by default - user must expl
 function _ci_ssh_extract_keys_from_file() {
   local file="$1"
   [[ -f "$file" && -r "$file" ]] || return 0
-  grep -E '^(ssh-(rsa|ed25519|dss|ecdsa)|ecdsa-sha2-)' "$file" 2>/dev/null || true
+  grep -E '^(ssh-(ed25519|dss|ecdsa)|ecdsa-sha2-)' "$file" 2>/dev/null || true
 }
 
 # ------------------------------------------------------------------------------
@@ -368,7 +368,7 @@ function setup_cloud_init() {
   umask 077
   cat >"$cred_file" <<EOF
 ╔══════════════════════════════════════════════════════════════════╗
-║  ⚠️  SECURITY WARNING: DELETE THIS FILE AFTER NOTING CREDENTIALS  ║
+║  ⚠️ SECURITY WARNING: DELETE THIS FILE AFTER NOTING CREDENTIALS  ║
 ╚══════════════════════════════════════════════════════════════════╝
 
 Cloud-Init Credentials

@@ -216,7 +216,7 @@ function default_settings() {
   MACHINE="q35"
   DISK_SIZE="30G"
   HN="rockylinux"
-  CPU_TYPE=""
+  CPU_TYPE="x86-64-v2"
   CORE_COUNT="2"
   RAM_SIZE="4096"
   BRG="vmbr0"
@@ -227,10 +227,10 @@ function default_settings() {
   CLOUD_INIT="${CLOUD_INIT:-no}"
   METHOD="default"
   echo -e "${CONTAINERID}${BOLD}${DGN}Virtual Machine ID: ${BGN}${VMID}${CL}"
-  echo -e "${CONTAINERTYPE}${BOLD}${DGN}Machine Type: ${BGN}q35${CL}"
+  echo -e "${CONTAINERTYPE}${BOLD}${DGN}Machine Type: ${BGN}${MACHINE}${CL}"
   echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}${DISK_SIZE}${CL}"
   echo -e "${HOSTNAME}${BOLD}${DGN}Hostname: ${BGN}${HN}${CL}"
-  echo -e "${OS}${BOLD}${DGN}CPU Model: ${BGN}KVM64${CL}"
+  echo -e "${OS}${BOLD}${DGN}CPU Model: ${BGN}${CPU_TYPE}${CL}"
   echo -e "${CPUCORE}${BOLD}${DGN}CPU Cores: ${BGN}${CORE_COUNT}${CL}"
   echo -e "${RAMSIZE}${BOLD}${DGN}RAM Size: ${BGN}${RAM_SIZE}${CL}"
   echo -e "${BRIDGE}${BOLD}${DGN}Bridge: ${BGN}${BRG}${CL}"
@@ -332,7 +332,7 @@ function advanced_settings() {
       ;;
     *)
       echo -e "${OS}${BOLD}${DGN}CPU Model: ${BGN}KVM64${CL}"
-      CPU_TYPE=""
+      CPU_TYPE=" -cpu x86-64-v2"
       ;;
     esac
   else
@@ -575,13 +575,13 @@ DESCRIPTION=$(
 </div>
 EOF
 )
-qm set "$VMID" -description "$DESCRIPTION" >/dev/null
+# qm set "$VMID" -description "$DESCRIPTION" >/dev/null
 msg_info "Resizing disk to ${DISK_SIZE}"
 qm resize "$VMID" scsi0 "${DISK_SIZE}" >/dev/null
 
 if [ "$CLOUD_INIT" == "yes" ]; then
   source /dev/stdin <<<$(curl -fsSL "$COMMUNITY_SCRIPTS_URL/misc/cloud-init.func")
-  setup_cloud_init "$VMID" "$STORAGE" "$HN" "yes"
+  setup_cloud_init "$VMID" "$STORAGE" "$HN" "$CLOUD_INIT"
 fi
 
 msg_ok "Created a Rocky Linux 9 VM ${CL}${BL}(${HN})"
@@ -591,8 +591,12 @@ if [ "$START_VM" == "yes" ]; then
   msg_ok "Started Rocky Linux 9 VM"
 fi
 
+# msg_info "Installing default RSA-keys to VM"
+# qm set "$VMID" --sshkeys ~/.ssh/admin_rsa.pub >/dev/null 2>&1 || true
+# qm set "$VMID" --sshkeys ~/.ssh/id_rsa.pub >/dev/null 2>&1 || true
+# msg_ok "Installed default RSA-keys"
+
 msg_info "Installing resize tools in VM"
-qm set "$VMID" --sshkeys ~/.ssh/id_rsa.pub >/dev/null 2>&1 || true
 qm exec "$VMID" -- bash -c "dnf update -y && dnf install -y cloud-utils-growpart e2fsprogs xfsprogs"
 msg_ok "Installed resize tools in VM"
 
