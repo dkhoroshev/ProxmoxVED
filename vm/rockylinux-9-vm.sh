@@ -215,7 +215,7 @@ function default_settings() {
   FORMAT=""
   MACHINE="q35"
   DISK_SIZE="30G"
-  HN="rockylinux"
+  HN="${HN:-""}"
   CPU_TYPE="x86-64-v2"
   CORE_COUNT="2"
   RAM_SIZE="4096"
@@ -322,7 +322,7 @@ function advanced_settings() {
   fi
 
   if CPU_TYPE1=$(whiptail --backtitle "Proxmox VE Helper Scripts" --title "CPU MODEL" --radiolist "Choose CPU Model" --cancel-button Exit-Script 10 58 2 \
-    "KVM64" "Default – safe for migration/compatibility" ON \
+    "x86-64" "Default – safe for migration/compatibility" ON \
     "Host" "Use host CPU features (faster, no migration)" OFF \
     3>&1 1>&2 2>&3); then
     case "$CPU_TYPE1" in
@@ -331,7 +331,7 @@ function advanced_settings() {
       CPU_TYPE=" -cpu host"
       ;;
     *)
-      echo -e "${OS}${BOLD}${DGN}CPU Model: ${BGN}KVM64${CL}"
+      echo -e "${OS}${BOLD}${DGN}CPU Model: ${BGN}x86-64${CL}"
       CPU_TYPE=" -cpu x86-64-v2"
       ;;
     esac
