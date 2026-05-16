@@ -502,9 +502,10 @@ fi
 
 set -o pipefail
 msg_info "Creating Rocky Linux 9 VM shell"
-qm create "$VMID" -machine q35 -bios ovmf -agent 1 -tablet 0 -localtime 1 ${CPU_TYPE} \
-  -cores "$CORE_COUNT" -memory "$RAM_SIZE" -name "$HN" -tags community-script \
-  -net0 "virtio,bridge=$BRG,macaddr=$MAC$VLAN$MTU" -onboot 1 -ostype l26 -scsihw virtio-scsi-pci >/dev/null
+qm create "$VMID" -machine q35 -bios ovmf -tablet 0  ${CPU_TYPE} \
+  -cores "$CORE_COUNT" -memory "$RAM_SIZE" -name "$HN" \
+  -net0 "virtio,bridge=$BRG,macaddr=$MAC$VLAN$MTU"  -ostype l26 -scsihw virtio-scsi-pci >/dev/null
+qm set "$VMID" -onboot 1 -localtime 1 -agent 1 >/dev/null
 msg_ok "Created VM shell"
 
 msg_info "Importing disk into storage ($STORAGE)"
