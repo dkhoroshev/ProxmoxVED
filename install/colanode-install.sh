@@ -21,7 +21,7 @@ $STD apt install -y \
 msg_ok "Installed Dependencies"
 
 PG_VERSION="17" PG_MODULES="pgvector" setup_postgresql
-PG_DB_NAME="colanode_db" PG_DB_USER="colanode" setup_postgresql_db
+PG_DB_NAME="colanode_db" PG_DB_USER="colanode" PG_DB_EXTENSIONS="vector" setup_postgresql_db
 NODE_VERSION="22" setup_nodejs
 
 fetch_and_deploy_gh_release "colanode" "colanode/colanode" "tarball"
@@ -52,6 +52,8 @@ msg_ok "Configured Application"
 
 msg_info "Configuring Nginx"
 create_self_signed_cert "colanode"
+# Make cert available for browser import (required for Service Worker to work)
+cp /etc/ssl/colanode/colanode.crt /var/www/colanode/colanode.crt
 cat <<EOF >/etc/nginx/sites-available/colanode
 server {
     listen 4000 ssl;
@@ -61,6 +63,10 @@ server {
 
     ssl_certificate /etc/ssl/colanode/colanode.crt;
     ssl_certificate_key /etc/ssl/colanode/colanode.key;
+
+    # Required for SharedArrayBuffer / OPFS SQLite (WASM)
+    add_header Cross-Origin-Opener-Policy "same-origin" always;
+    add_header Cross-Origin-Embedder-Policy "require-corp" always;
 
     # Proxy API and WebSocket traffic to the Node.js server
     location ~ ^/(config|client)(/.*)?$ {
@@ -72,6 +78,11 @@ server {
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    # Serve self-signed cert for browser import
+    location = /colanode.crt {
+        default_type application/x-x509-ca-cert;
     }
 
     location / {

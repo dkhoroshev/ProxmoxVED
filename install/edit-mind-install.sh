@@ -21,8 +21,6 @@ $STD apt install -y \
   nginx \
   python3 \
   python3-dev \
-  python3-venv \
-  python3-pip \
   libgomp1 \
   libglib2.0-0 \
   libgl1 \
@@ -36,9 +34,11 @@ setup_ffmpeg
 PG_VERSION="16" PG_MODULES="pgvector" setup_postgresql
 PG_DB_NAME="editmind" PG_DB_USER="editmind" setup_postgresql_db
 NODE_VERSION="22" setup_nodejs
+UV_PYTHON="3.11" setup_uv
 
 msg_info "Installing pnpm"
-$STD npm install -g pnpm@10
+$STD corepack enable pnpm
+$STD corepack prepare pnpm@10.33.1 --activate
 msg_ok "Installed pnpm"
 
 fetch_and_deploy_gh_release "edit-mind" "IliasHad/edit-mind" "tarball"
@@ -50,20 +50,20 @@ $STD pnpm --filter prisma generate
 msg_ok "Installed Application Dependencies"
 
 msg_info "Building Application"
+cat <<EOF >/opt/edit-mind/apps/web/.env.production
+VITE_BACKGROUND_JOBS_URL=http://${LOCAL_IP}:4000
+EOF
 $STD pnpm run build:web
 $STD pnpm rebuild @tailwindcss/oxide rollup onnxruntime-node
 $STD pnpm run build:background-jobs
 msg_ok "Built Application"
 
 msg_info "Setting up Python ML Environment"
-python3 -m venv /opt/edit-mind/.venv
-$STD /opt/edit-mind/.venv/bin/pip install --upgrade pip
-$STD /opt/edit-mind/.venv/bin/pip install --no-cache-dir -r /opt/edit-mind/python/requirements.txt
+$STD uv venv --python 3.11 /opt/edit-mind/.venv
+$STD uv pip install --no-cache-dir --python /opt/edit-mind/.venv \
+  -r /opt/edit-mind/python/requirements.txt \
+  chromadb
 msg_ok "Set up Python ML Environment"
-
-msg_info "Setting up ChromaDB"
-$STD /opt/edit-mind/.venv/bin/pip install --no-cache-dir chromadb
-msg_ok "Set up ChromaDB"
 
 msg_info "Configuring Application"
 SESSION_SECRET=$(openssl rand -base64 32)
@@ -103,7 +103,7 @@ KNOWN_FACES_FILE_LOADED=/opt/edit-mind/.data/.known_faces.json
 BACKGROUND_JOBS_URL=http://127.0.0.1:4000
 NODE_ENV=production
 ANONYMIZED_TELEMETRY=FALSE
-WEB_APP_URL=http://127.0.0.1:3745
+WEB_APP_URL=http://${LOCAL_IP}:3745
 EOF
 mkdir -p /opt/edit-mind/media
 set -a && source /opt/edit-mind/.env && source /opt/edit-mind/.env.system && set +a

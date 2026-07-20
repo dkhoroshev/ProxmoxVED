@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVED/main/misc/build.func)
+source "$(dirname "${BASH_SOURCE[0]}")/../misc/build.func" 2>/dev/null || source <(curl -fsSL "${COMMUNITY_SCRIPTS_URL:-https://raw.githubusercontent.com/community-scripts/ProxmoxVED/main}/misc/build.func")
 # Copyright (c) 2021-2026 community-scripts ORG
 # Author: MickLesk (CanbiZ)
 # License: MIT | https://github.com/community-scripts/ProxmoxVED/raw/main/LICENSE
@@ -12,6 +12,7 @@ var_ram="${var_ram:-4096}"
 var_disk="${var_disk:-16}"
 var_os="${var_os:-debian}"
 var_version="${var_version:-13}"
+var_arm64="${var_arm64:-no}"
 var_unprivileged="${var_unprivileged:-1}"
 
 header_info "$APP"
@@ -34,9 +35,7 @@ function update_script() {
     systemctl stop colanode-server
     msg_ok "Stopped Services"
 
-    msg_info "Backing up Data"
-    cp /opt/colanode/.env /opt/colanode.env.bak
-    msg_ok "Backed up Data"
+    create_backup /opt/colanode/.env
 
     CLEAN_INSTALL=1 fetch_and_deploy_gh_release "colanode" "colanode/colanode" "tarball"
 
@@ -55,10 +54,7 @@ function update_script() {
     unset NODE_OPTIONS
     msg_ok "Rebuilt Application"
 
-    msg_info "Restoring Data"
-    cp /opt/colanode.env.bak /opt/colanode/.env
-    rm -f /opt/colanode.env.bak
-    msg_ok "Restored Data"
+    restore_backup
 
     msg_info "Starting Services"
     systemctl start colanode-server
@@ -74,7 +70,9 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${CREATING}${GN}${APP} setup has been successfully initialized!${CL}"
-echo -e "${INFO}${YW} Access it using the following URLs:${CL}"
-echo -e "${TAB}${GATEWAY}${BGN}https://${IP}:4000${CL} (Web UI - accept self-signed cert)"
-echo -e "${INFO}${YW} When adding a server in the app, use:${CL}"
-echo -e "${TAB}${GATEWAY}${BGN}https://${IP}:4000/config${CL}"
+echo -e "${INFO}${YW}Access it using the following URLs:${CL}"
+echo -e "${GATEWAY}${BGN}https://${IP}:4000${CL} (Web UI)"
+echo -e "${INFO}${YW} Before using: import the self-signed cert into your browser:${CL}"
+echo -e "${GATEWAY}${BGN}https://${IP}:4000/colanode.crt${CL}"
+echo -e "${INFO}${YW} Server URL to use inside the app:${CL}"
+echo -e "${GATEWAY}${BGN}https://${IP}:4000/config${CL}"

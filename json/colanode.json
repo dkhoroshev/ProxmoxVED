@@ -8,6 +8,7 @@
     "type": "ct",
     "updateable": true,
     "privileged": false,
+    "has_arm": false,
     "interface_port": 4000,
     "documentation": "https://github.com/colanode/colanode/blob/main/hosting/docker",
     "website": "https://colanode.com/",
@@ -33,7 +34,15 @@
     },
     "notes": [
         {
-            "text": "Web UI is available at https://YOUR_IP:4000 (self-signed certificate — accept the browser warning in the browser). When adding a server inside the app, enter https://YOUR_IP:4000/config as the server URL.",
+            "text": "Before using the app: download and import the self-signed certificate into your browser. Navigate to https://YOUR_IP:4000/colanode.crt and install it as a trusted CA. This is required for Service Worker and OPFS storage to work.",
+            "type": "warning"
+        },
+        {
+            "text": "Access the web interface at https://YOUR_IP:4000. When adding a server in the desktop or mobile app, enter https://YOUR_IP:4000 as the server URL.",
+            "type": "info"
+        },
+        {
+            "text": "No default credentials — open the web UI and register a new account on first access.",
             "type": "info"
         },
         {

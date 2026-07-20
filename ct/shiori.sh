@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVED/main/misc/build.func)
+source "$(dirname "${BASH_SOURCE[0]}")/../misc/build.func" 2>/dev/null || source <(curl -fsSL "${COMMUNITY_SCRIPTS_URL:-https://raw.githubusercontent.com/community-scripts/ProxmoxVED/main}/misc/build.func")
 # Copyright (c) 2021-2026 community-scripts ORG
 # Author: GitHub Copilot (GPT-5.3-Codex)
 # License: MIT | https://github.com/community-scripts/ProxmoxVED/raw/main/LICENSE
@@ -12,6 +12,7 @@ var_ram="${var_ram:-1024}"
 var_disk="${var_disk:-4}"
 var_os="${var_os:-debian}"
 var_version="${var_version:-13}"
+var_arm64="${var_arm64:-yes}"
 var_unprivileged="${var_unprivileged:-1}"
 
 header_info "$APP"
@@ -34,22 +35,10 @@ function update_script() {
     systemctl stop shiori
     msg_ok "Stopped Service"
 
-    msg_info "Backing up Data"
-    if [[ -d /opt/shiori/data ]]; then
-      cp -r /opt/shiori/data /opt/shiori_data_backup
-    fi
-    msg_ok "Backed up Data"
-
-    CLEAN_INSTALL=1 fetch_and_deploy_gh_release "shiori" "go-shiori/shiori" "prebuild" "latest" "/opt/shiori" "*Linux_x86_64.tar.gz"
-
+    create_backup /opt/shiori/data
+    CLEAN_INSTALL=1 fetch_and_deploy_gh_release "shiori" "go-shiori/shiori" "prebuild" "latest" "/opt/shiori" "shiori_Linux_$(arch_resolve "x86_64" "arm")_*.tar.gz"
     chmod +x /opt/shiori/shiori
-
-    msg_info "Restoring Data"
-    if [[ -d /opt/shiori_data_backup ]]; then
-      cp -r /opt/shiori_data_backup/. /opt/shiori/data
-      rm -rf /opt/shiori_data_backup
-    fi
-    msg_ok "Restored Data"
+    restore_backup
 
     msg_info "Starting Service"
     systemctl start shiori
@@ -65,5 +54,5 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${CREATING}${GN}${APP} setup has been successfully initialized!${CL}"
-echo -e "${INFO}${YW} Access it using the following URL:${CL}"
-echo -e "${TAB}${GATEWAY}${BGN}http://${IP}:8080${CL}"
+echo -e "${INFO}${YW}Access it using the following URL:${CL}"
+echo -e "${GATEWAY}${BGN}http://${IP}:8080${CL}"

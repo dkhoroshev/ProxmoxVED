@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVED/main/misc/build.func)
+source "$(dirname "${BASH_SOURCE[0]}")/../misc/build.func" 2>/dev/null || source <(curl -fsSL "${COMMUNITY_SCRIPTS_URL:-https://raw.githubusercontent.com/community-scripts/ProxmoxVED/main}/misc/build.func")
 # Copyright (c) 2021-2026 community-scripts ORG
 # Author: MickLesk (CanbiZ)
 # License: MIT | https://github.com/community-scripts/ProxmoxVED/raw/main/LICENSE
@@ -12,6 +12,7 @@ var_ram="${var_ram:-10240}"
 var_disk="${var_disk:-30}"
 var_os="${var_os:-debian}"
 var_version="${var_version:-13}"
+var_arm64="${var_arm64:-no}"
 var_unprivileged="${var_unprivileged:-1}"
 
 header_info "$APP"
@@ -34,15 +35,14 @@ function update_script() {
     systemctl stop stoatchat-api stoatchat-events stoatchat-autumn stoatchat-january stoatchat-crond
     msg_ok "Stopped Services"
 
-    msg_info "Backing up Configuration"
-    cp /Revolt.toml /opt/stoatchat_revolt.toml.bak
-    msg_ok "Backed up Configuration"
+    create_backup /Revolt.toml
 
     CLEAN_INSTALL=1 fetch_and_deploy_gh_release "stoatchat" "stoatchat/stoatchat" "tarball"
 
     msg_info "Rebuilding Backend (Patience)"
     cd /opt/stoatchat
-    $STD cargo build --release --bins -j 2
+    CARGO_PROFILE_RELEASE_LTO=thin \
+      $STD cargo build --release --bins -j 2
     msg_ok "Rebuilt Backend"
 
     msg_info "Updating Web Frontend"
@@ -62,10 +62,7 @@ function update_script() {
     $STD pnpm --filter client exec vite build
     msg_ok "Updated Web Frontend"
 
-    msg_info "Restoring Configuration"
-    cp /opt/stoatchat_revolt.toml.bak /Revolt.toml
-    rm -f /opt/stoatchat_revolt.toml.bak
-    msg_ok "Restored Configuration"
+    restore_backup
 
     msg_info "Starting Services"
     systemctl start stoatchat-api stoatchat-events stoatchat-autumn stoatchat-january stoatchat-crond
@@ -81,5 +78,5 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${CREATING}${GN}${APP} setup has been successfully initialized!${CL}"
-echo -e "${INFO}${YW} Access it using the following URL:${CL}"
-echo -e "${TAB}${GATEWAY}${BGN}http://${IP}${CL}"
+echo -e "${INFO}${YW}Access it using the following URL:${CL}"
+echo -e "${GATEWAY}${BGN}http://${IP}${CL}"

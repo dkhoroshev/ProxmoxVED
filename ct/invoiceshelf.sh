@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVED/main/misc/build.func)
+source "$(dirname "${BASH_SOURCE[0]}")/../misc/build.func" 2>/dev/null || source <(curl -fsSL "${COMMUNITY_SCRIPTS_URL:-https://raw.githubusercontent.com/community-scripts/ProxmoxVED/main}/misc/build.func")
 # Copyright (c) 2021-2026 community-scripts ORG
 # Author: MickLesk (CanbiZ)
 # License: MIT | https://github.com/community-scripts/ProxmoxVED/raw/main/LICENSE
@@ -12,6 +12,7 @@ var_ram="${var_ram:-1024}"
 var_disk="${var_disk:-4}"
 var_os="${var_os:-debian}"
 var_version="${var_version:-13}"
+var_arm64="${var_arm64:-no}"
 var_unprivileged="${var_unprivileged:-1}"
 
 header_info "$APP"
@@ -34,19 +35,12 @@ function update_script() {
     systemctl stop caddy
     msg_ok "Stopped Services"
 
-    msg_info "Backing up Data"
-    cp /opt/invoiceshelf/.env /opt/invoiceshelf.env.bak
-    cp -r /opt/invoiceshelf/storage /opt/invoiceshelf_storage_backup
-    msg_ok "Backed up Data"
+    create_backup /opt/invoiceshelf/.env \
+    /opt/invoiceshelf/storage
 
     CLEAN_INSTALL=1 fetch_and_deploy_gh_release "invoiceshelf" "InvoiceShelf/InvoiceShelf" "tarball"
 
-    msg_info "Restoring Data"
-    cp /opt/invoiceshelf.env.bak /opt/invoiceshelf/.env
-    rm -f /opt/invoiceshelf.env.bak
-    cp -r /opt/invoiceshelf_storage_backup/. /opt/invoiceshelf/storage
-    rm -rf /opt/invoiceshelf_storage_backup
-    msg_ok "Restored Data"
+    restore_backup
 
     msg_info "Updating Application"
     cd /opt/invoiceshelf
@@ -72,5 +66,5 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${CREATING}${GN}${APP} setup has been successfully initialized!${CL}"
-echo -e "${INFO}${YW} Access it using the following URL:${CL}"
-echo -e "${TAB}${GATEWAY}${BGN}http://${IP}${CL}"
+echo -e "${INFO}${YW}Access it using the following URL:${CL}"
+echo -e "${GATEWAY}${BGN}http://${IP}${CL}"

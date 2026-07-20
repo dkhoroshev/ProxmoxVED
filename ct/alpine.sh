@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVED/main/misc/build.func)
+source "$(dirname "${BASH_SOURCE[0]}")/../misc/build.func" 2>/dev/null || source <(curl -fsSL "${COMMUNITY_SCRIPTS_URL:-https://raw.githubusercontent.com/community-scripts/ProxmoxVED/main}/misc/build.func")
 
 # Copyright (c) 2021-2026 tteck
 # Author: tteck (tteckster)
@@ -13,6 +13,7 @@ var_ram="${var_ram:-4096}"
 var_disk="${var_disk:-5}"
 var_os="${var_os:-alpine}"
 var_version="${var_version:-3.22}"
+var_arm64="${var_arm64:-no}"
 var_unprivileged="${var_unprivileged:-1}"
 
 header_info "$APP"

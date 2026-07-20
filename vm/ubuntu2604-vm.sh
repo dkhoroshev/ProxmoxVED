@@ -7,24 +7,12 @@
 source <(curl -fsSL "${COMMUNITY_SCRIPTS_URL:-https://git.community-scripts.org/community-scripts/ProxmoxVED/raw/branch/main}/misc/vm-core.func")
 load_functions
 
-function header_info {
-  clear
-  cat <<"EOF"
-   __  ____                __           ___   ______ ____  __ __     _    ____  ___
-  / / / / /_  __  ______  / /___  __   |__ \ / ____// __ \/ // /    | |  / /  |/  /
- / / / / __ \/ / / / __ \/ __/ / / /   __/ //___ \ / / / / // /_    | | / / /|_/ / 
-/ /_/ / /_/ / /_/ / / / / /_/ /_/ /   / __/____/ // /_/ /__  __/    | |/ / /  / /  
-\____/_.___/\__,_/_/ /_/\__/\__,_/   /____/_____(_)____/  /_/       |___/_/  /_/ (Plucky Puffin)
-                                                                                   
-EOF
-}
-
 APP="Ubuntu 26.04 VM"
 APP_TYPE="vm"
+NSAPP="ubuntu2604-vm"
 GEN_MAC=02:$(openssl rand -hex 5 | awk '{print toupper($0)}' | sed 's/\(..\)/\1:/g; s/.$//')
 RANDOM_UUID="$(cat /proc/sys/kernel/random/uuid)"
 METHOD=""
-NSAPP="ubuntu2604-vm"
 var_os="ubuntu"
 var_version="2604"
 THIN="discard=on,ssd=1,"
@@ -158,7 +146,26 @@ msg_info "Resizing disk to $DISK_SIZE"
 qm resize $VMID scsi0 ${DISK_SIZE} >/dev/null
 
 if [ "$USE_CLOUD_INIT" = "yes" ] && declare -f setup_cloud_init >/dev/null 2>&1; then
-  setup_cloud_init "$VMID" "$STORAGE" "$HN" "yes" "${CLOUDINIT_USER:-ubuntu}" "${CLOUDINIT_NETWORK_MODE:-dhcp}" "${CLOUDINIT_IP:-}" "${CLOUDINIT_GW:-}" "${CLOUDINIT_DNS:-${CLOUDINIT_DNS_SERVERS:-1.1.1.1 8.8.8.8}}"
+  setup_cloud_init \
+    "$VMID" \
+    "$STORAGE" \
+    "$HN" \
+    "yes" \
+    "${CLOUDINIT_USER:-ubuntu}" \
+    "${CLOUDINIT_NETWORK_MODE:-dhcp}" \
+    "${CLOUDINIT_IP:-}" \
+    "${CLOUDINIT_GW:-}" \
+    "${CLOUDINIT_DNS:-${CLOUDINIT_DNS_SERVERS:-1.1.1.1 8.8.8.8}}"
+
+  if [[ "${CLOUDINIT_NETWORK_MODE:-dhcp}" == "static" ]]; then
+    setup_cloud_init_network_no_rename \
+      "$VMID" \
+      "$MAC" \
+      "$CLOUDINIT_IP" \
+      "$CLOUDINIT_GW" \
+      "${CLOUDINIT_DNS:-${CLOUDINIT_DNS_SERVERS:-1.1.1.1 8.8.8.8}}" \
+      "${CLOUDINIT_SEARCH_DOMAIN:-local}"
+  fi
 fi
 
 msg_ok "Created a Ubuntu 26.04 VM ${CL}${BL}(${HN})"

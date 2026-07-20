@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVED/main/misc/build.func)
+source "$(dirname "${BASH_SOURCE[0]}")/../misc/build.func" 2>/dev/null || source <(curl -fsSL "${COMMUNITY_SCRIPTS_URL:-https://raw.githubusercontent.com/community-scripts/ProxmoxVED/main}/misc/build.func")
 
 # Copyright (c) 2021-2026 community-scripts ORG
 # Author: aliaksei135
@@ -13,6 +13,7 @@ var_ram="${var_ram:-2048}"
 var_disk="${var_disk:-8}"
 var_os="${var_os:-debian}"
 var_version="${var_version:-13}"
+var_arm64="${var_arm64:-no}"
 var_unprivileged="${var_unprivileged:-1}"
 
 header_info "$APP"
@@ -35,19 +36,12 @@ function update_script() {
     systemctl stop garmin-grafana
     msg_ok "Stopped Services"
 
-    msg_info "Backing up Data"
-    cp /opt/garmin-grafana/.env /opt/garmin-grafana.env.bak
-    cp -r /opt/garmin-grafana/.garminconnect /opt/garmin-grafana-tokens.bak
-    msg_ok "Backed up Data"
+    create_backup /opt/garmin-grafana/.env \
+                  /opt/garmin-grafana/.garminconnect
 
     CLEAN_INSTALL=1 fetch_and_deploy_gh_release "garmin-grafana" "arpanghosh8453/garmin-grafana" "tarball"
 
-    msg_info "Restoring Data"
-    cp /opt/garmin-grafana.env.bak /opt/garmin-grafana/.env
-    cp -r /opt/garmin-grafana-tokens.bak /opt/garmin-grafana/.garminconnect
-    rm -f /opt/garmin-grafana.env.bak
-    rm -rf /opt/garmin-grafana-tokens.bak
-    msg_ok "Restored Data"
+    restore_backup
 
     msg_info "Updating Dependencies"
     source /opt/garmin-grafana/.env
@@ -76,5 +70,5 @@ description
 
 msg_ok "Completed Successfully!\n"
 echo -e "${CREATING}${GN}${APP} setup has been successfully initialized!${CL}"
-echo -e "${INFO}${YW} Access it using the following URL:${CL}"
-echo -e "${TAB}${GATEWAY}${BGN}http://${IP}:3000${CL}"
+echo -e "${INFO}${YW}Access it using the following URL:${CL}"
+echo -e "${GATEWAY}${BGN}http://${IP}:3000${CL}"
